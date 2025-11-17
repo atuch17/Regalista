@@ -1,0 +1,5 @@
+{
+  "name": "Visual Gift Wishlist",
+  "description": "A visually attractive gift wishlist application where you can manage your gift ideas as cards. Features include drag-and-drop reordering, status tracking, tagging, and AI-powered gift suggestions using the Gemini API.",
+  "requestFramePermissions": []
+}
