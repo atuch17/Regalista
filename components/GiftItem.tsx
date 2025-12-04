@@ -1,6 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Gift } from '../types';
 import { CheckIcon, PencilIcon, TrashIcon, XIcon } from './icons';
+// @ts-ignore
+import confetti from 'canvas-confetti';
 
 interface GiftItemProps {
     gift: Gift;
@@ -44,17 +47,37 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
         }
     };
 
+    const handleToggleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        // If we are marking it as purchased (currently not purchased)
+        if (!isPurchased) {
+            // Get button position for the origin of the confetti
+            const rect = (e.target as HTMLElement).getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+            confetti({
+                particleCount: 60,
+                spread: 70,
+                origin: { x, y },
+                colors: ['#10B981', '#34D399', '#FBBF24', '#F59E0B'], // Emeralds and Ambers
+                disableForReducedMotion: true,
+                zIndex: 100,
+            });
+        }
+        onToggleStatus(gift.id);
+    };
+
     return (
         <li className={`py-4 flex items-start space-x-4 group transition-all duration-300 ease-in-out ${isDeleting ? 'opacity-0 -translate-x-4 max-h-0 py-0' : 'max-h-40'}`}>
             <button
-                onClick={() => onToggleStatus(gift.id)}
+                onClick={handleToggleClick}
                 aria-label={isPurchased ? 'Marcar como pendiente' : 'Marcar como comprado'}
                 className={`
                     w-6 h-6 rounded-full border-2 flex-shrink-0 mt-1 flex items-center justify-center
-                    transition-colors duration-200
+                    transition-all duration-200 transform active:scale-90
                     ${isPurchased 
-                        ? 'bg-emerald-500 border-emerald-500 text-white' 
-                        : 'bg-white border-slate-300 text-slate-400 hover:border-emerald-500'
+                        ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' 
+                        : 'bg-white border-slate-300 text-slate-400 hover:border-emerald-500 hover:shadow-sm'
                     }
                 `}
                 disabled={isEditing}
@@ -84,10 +107,10 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
                     </div>
                 ) : (
                     <>
-                        <p className={`font-semibold text-slate-800 ${isPurchased ? 'line-through text-slate-500' : ''}`}>
+                        <p className={`font-semibold text-slate-800 transition-all duration-300 ${isPurchased ? 'line-through text-slate-400' : ''}`}>
                             {gift.name}
                         </p>
-                        <p className={`text-sm text-slate-600 mt-1 ${isPurchased ? 'line-through text-slate-400' : ''}`}>
+                        <p className={`text-sm text-slate-600 mt-1 transition-all duration-300 ${isPurchased ? 'line-through text-slate-300' : ''}`}>
                             {gift.description}
                         </p>
                     </>

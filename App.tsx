@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Person, Gift } from './types';
 import { INITIAL_PEOPLE } from './constants';
 import Header from './components/Header';
 import PeopleList from './components/GiftGrid';
 import AddPersonModal from './components/SuggestionModal';
+import BirthdayCalendarModal from './components/BirthdayCalendarModal';
 import { WarningIcon } from './components/icons';
 
 interface ConfirmationModalProps {
@@ -70,7 +72,8 @@ const App: React.FC = () => {
       return INITIAL_PEOPLE;
     }
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddPersonModalOpen, setIsAddPersonModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState<Person | null>(null);
 
   useEffect(() => {
@@ -99,7 +102,7 @@ const App: React.FC = () => {
 
   const handleAddPerson = (newPerson: Person) => {
     setPeople(prevPeople => [newPerson, ...prevPeople]);
-    setIsModalOpen(false);
+    setIsAddPersonModalOpen(false);
   };
 
   const handleDeletePerson = (personId: string) => {
@@ -180,7 +183,10 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <Header onAddPersonClick={() => setIsModalOpen(true)} />
+      <Header 
+        onAddPersonClick={() => setIsAddPersonModalOpen(true)} 
+        onCalendarClick={() => setIsCalendarModalOpen(true)}
+      />
       <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <PeopleList
           people={people}
@@ -193,9 +199,14 @@ const App: React.FC = () => {
         />
       </main>
       <AddPersonModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isAddPersonModalOpen}
+        onClose={() => setIsAddPersonModalOpen(false)}
         onAddPerson={handleAddPerson}
+      />
+      <BirthdayCalendarModal 
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        people={people}
       />
       <ConfirmationModal
         isOpen={!!personToDelete}
