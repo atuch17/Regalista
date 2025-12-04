@@ -1,3 +1,4 @@
+
 import { Person } from './types';
 
 export const INITIAL_PEOPLE: Person[] = [
@@ -5,6 +6,7 @@ export const INITIAL_PEOPLE: Person[] = [
     id: 'person-1',
     name: 'Mamá',
     birthday: '15 de Mayo',
+    reminderSet: false,
     gifts: [
       {
         id: 'gift-1-1',
@@ -24,6 +26,7 @@ export const INITIAL_PEOPLE: Person[] = [
     id: 'person-2',
     name: 'Juan',
     birthday: '22 de Noviembre',
+    reminderSet: false,
     gifts: [
       {
         id: 'gift-2-1',

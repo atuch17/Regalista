@@ -6,11 +6,12 @@ import PersonCard from './GiftCard';
 interface PeopleListProps {
   people: Person[];
   onToggleGiftStatus: (personId: string, giftId: string) => void;
-  onAddGift: (personId: string, giftName: string, giftDescription: string) => void;
-  onEditGift: (personId: string, giftId: string, newName: string, newDescription: string) => void;
+  onAddGift: (personId: string, giftName: string, giftDescription: string, price?: number, link?: string) => void;
+  onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => void;
   onDeleteGift: (personId: string, giftId: string) => void;
   onDeletePerson: (personId: string) => void;
   onEditPerson: (personId: string, newName: string, newBirthday: string) => void;
+  onSetReminder: (personId: string) => void;
 }
 
 const getDaysUntilBirthday = (birthdayString: string): number | null => {
@@ -52,7 +53,8 @@ const PeopleList: React.FC<PeopleListProps> = ({
   onEditGift,
   onDeleteGift,
   onDeletePerson,
-  onEditPerson
+  onEditPerson,
+  onSetReminder
 }) => {
 
   if (people.length === 0) {
@@ -86,6 +88,7 @@ const PeopleList: React.FC<PeopleListProps> = ({
             onDeleteGift={onDeleteGift}
             onDeletePerson={onDeletePerson}
             onEditPerson={onEditPerson}
+            onSetReminder={onSetReminder}
           />
         </div>
       ))}

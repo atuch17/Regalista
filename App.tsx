@@ -123,7 +123,7 @@ const App: React.FC = () => {
     setPersonToDelete(null);
   };
 
-  const handleAddGift = (personId: string, giftName: string, giftDescription: string) => {
+  const handleAddGift = (personId: string, giftName: string, giftDescription: string, price?: number, link?: string) => {
     if (!giftName.trim()) return;
 
     const newGift: Gift = {
@@ -131,6 +131,8 @@ const App: React.FC = () => {
       name: giftName.trim(),
       description: giftDescription.trim(),
       status: 'pendiente',
+      price: price,
+      link: link?.trim()
     };
 
     setPeople(people.map(person => {
@@ -144,14 +146,14 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleEditGift = (personId: string, giftId: string, newName: string, newDescription: string) => {
+  const handleEditGift = (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => {
     setPeople(people.map(person => {
       if (person.id === personId) {
         return {
           ...person,
           gifts: person.gifts.map(gift =>
             gift.id === giftId
-              ? { ...gift, name: newName, description: newDescription }
+              ? { ...gift, name: newName, description: newDescription, price: newPrice, link: newLink }
               : gift
           )
         };
@@ -163,7 +165,23 @@ const App: React.FC = () => {
   const handleEditPerson = (personId: string, newName: string, newBirthday: string) => {
     setPeople(people.map(person => {
       if (person.id === personId) {
-        return { ...person, name: newName, birthday: newBirthday };
+        // If birthday changes, reset reminderSet to false
+        const isBirthdayChanged = person.birthday !== newBirthday;
+        return { 
+            ...person, 
+            name: newName, 
+            birthday: newBirthday,
+            reminderSet: isBirthdayChanged ? false : person.reminderSet 
+        };
+      }
+      return person;
+    }));
+  };
+
+  const handleSetReminder = (personId: string) => {
+    setPeople(people.map(person => {
+      if (person.id === personId) {
+        return { ...person, reminderSet: true };
       }
       return person;
     }));
@@ -196,6 +214,7 @@ const App: React.FC = () => {
           onDeleteGift={handleDeleteGift}
           onDeletePerson={handleDeletePerson}
           onEditPerson={handleEditPerson}
+          onSetReminder={handleSetReminder}
         />
       </main>
       <AddPersonModal

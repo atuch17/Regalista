@@ -1,3 +1,4 @@
+
 export type GiftStatus = 'pendiente' | 'comprado';
 
 export interface Gift {
@@ -5,11 +6,14 @@ export interface Gift {
   name: string;
   description: string;
   status: GiftStatus;
+  price?: number;
+  link?: string;
 }
 
 export interface Person {
   id: string;
   name: string;
   birthday: string;
+  reminderSet?: boolean;
   gifts: Gift[];
 }
