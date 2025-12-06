@@ -15,5 +15,6 @@ export interface Person {
   name: string;
   birthday: string;
   reminderSet?: boolean;
+  isFavorite?: boolean;
   gifts: Gift[];
 }

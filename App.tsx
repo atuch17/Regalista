@@ -187,6 +187,15 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleToggleFavorite = (personId: string) => {
+    setPeople(people.map(person => {
+      if (person.id === personId) {
+        return { ...person, isFavorite: !person.isFavorite };
+      }
+      return person;
+    }));
+  };
+
   const handleDeleteGift = (personId: string, giftId: string) => {
      setPeople(people.map(person => {
       if (person.id === personId) {
@@ -215,6 +224,7 @@ const App: React.FC = () => {
           onDeletePerson={handleDeletePerson}
           onEditPerson={handleEditPerson}
           onSetReminder={handleSetReminder}
+          onToggleFavorite={handleToggleFavorite}
         />
       </main>
       <AddPersonModal

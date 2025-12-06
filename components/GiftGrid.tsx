@@ -2,6 +2,7 @@
 import React from 'react';
 import { Person } from '../types';
 import PersonCard from './GiftCard';
+import { StarIcon } from './icons';
 
 interface PeopleListProps {
   people: Person[];
@@ -12,6 +13,7 @@ interface PeopleListProps {
   onDeletePerson: (personId: string) => void;
   onEditPerson: (personId: string, newName: string, newBirthday: string) => void;
   onSetReminder: (personId: string) => void;
+  onToggleFavorite: (personId: string) => void;
 }
 
 const getDaysUntilBirthday = (birthdayString: string): number | null => {
@@ -54,7 +56,8 @@ const PeopleList: React.FC<PeopleListProps> = ({
   onDeleteGift,
   onDeletePerson,
   onEditPerson,
-  onSetReminder
+  onSetReminder,
+  onToggleFavorite
 }) => {
 
   if (people.length === 0) {
@@ -66,32 +69,77 @@ const PeopleList: React.FC<PeopleListProps> = ({
     );
   }
 
-  const sortedPeople = [...people].sort((a, b) => {
-    const daysA = getDaysUntilBirthday(a.birthday);
-    const daysB = getDaysUntilBirthday(b.birthday);
+  const sortPeople = (list: Person[]) => {
+    return [...list].sort((a, b) => {
+      const daysA = getDaysUntilBirthday(a.birthday);
+      const daysB = getDaysUntilBirthday(b.birthday);
 
-    if (daysA === null) return 1;
-    if (daysB === null) return -1;
-    
-    return daysA - daysB;
-  });
+      if (daysA === null) return 1;
+      if (daysB === null) return -1;
+      
+      return daysA - daysB;
+    });
+  };
+
+  const favorites = sortPeople(people.filter(p => p.isFavorite));
+  const others = sortPeople(people.filter(p => !p.isFavorite));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-      {sortedPeople.map((person) => (
-        <div key={person.id}>
-          <PersonCard 
-            person={person} 
-            onToggleGiftStatus={onToggleGiftStatus} 
-            onAddGift={onAddGift}
-            onEditGift={onEditGift}
-            onDeleteGift={onDeleteGift}
-            onDeletePerson={onDeletePerson}
-            onEditPerson={onEditPerson}
-            onSetReminder={onSetReminder}
-          />
+    <div className="space-y-8">
+      {/* Sección de Favoritos */}
+      {favorites.length > 0 && (
+        <div className="animate-fade-in">
+          <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <StarIcon className="w-6 h-6 text-amber-400" fill="currentColor" />
+            Favoritos
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+            {favorites.map((person) => (
+              <div key={person.id}>
+                <PersonCard 
+                  person={person} 
+                  onToggleGiftStatus={onToggleGiftStatus} 
+                  onAddGift={onAddGift}
+                  onEditGift={onEditGift}
+                  onDeleteGift={onDeleteGift}
+                  onDeletePerson={onDeletePerson}
+                  onEditPerson={onEditPerson}
+                  onSetReminder={onSetReminder}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
+
+      {/* Sección General */}
+      {others.length > 0 && (
+        <div className="animate-fade-in">
+          {favorites.length > 0 && (
+            <h2 className="text-lg font-semibold text-slate-500 mb-4 flex items-center gap-2">
+              👥 Mis contactos
+            </h2>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+            {others.map((person) => (
+              <div key={person.id}>
+                <PersonCard 
+                  person={person} 
+                  onToggleGiftStatus={onToggleGiftStatus} 
+                  onAddGift={onAddGift}
+                  onEditGift={onEditGift}
+                  onDeleteGift={onDeleteGift}
+                  onDeletePerson={onDeletePerson}
+                  onEditPerson={onEditPerson}
+                  onSetReminder={onSetReminder}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

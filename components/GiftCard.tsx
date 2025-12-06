@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Person } from '../types';
 import GiftItem from './GiftItem';
-import { PlusIcon, CakeIcon, TrashIcon, GiftIcon, PencilIcon, ShareIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, EuroIcon, LinkIcon, BellIcon } from './icons';
+import { PlusIcon, CakeIcon, TrashIcon, GiftIcon, PencilIcon, ShareIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, EuroIcon, LinkIcon, BellIcon, StarIcon } from './icons';
 
 interface PersonCardProps {
   person: Person;
@@ -13,6 +13,7 @@ interface PersonCardProps {
   onDeletePerson: (personId: string) => void;
   onEditPerson: (personId: string, newName: string, newBirthday: string) => void;
   onSetReminder: (personId: string) => void;
+  onToggleFavorite: (personId: string) => void;
 }
 
 const MONTHS = [
@@ -68,7 +69,7 @@ const parseBirthdayString = (dateStr: string) => {
     return { day: 1, month: 'Enero' };
 };
 
-const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onAddGift, onEditGift, onDeleteGift, onDeletePerson, onEditPerson, onSetReminder }) => {
+const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onAddGift, onEditGift, onDeleteGift, onDeletePerson, onEditPerson, onSetReminder, onToggleFavorite }) => {
   const [newGiftName, setNewGiftName] = useState('');
   const [newGiftDescription, setNewGiftDescription] = useState('');
   const [newGiftPrice, setNewGiftPrice] = useState('');
@@ -89,7 +90,9 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
   const [isPurchasedExpanded, setIsPurchasedExpanded] = useState(false);
 
   const daysUntilBirthday = useMemo(() => getDaysUntilBirthday(person.birthday), [person.birthday]);
-  const birthdayIsUpcoming = daysUntilBirthday !== null && daysUntilBirthday >= 0 && daysUntilBirthday <= 30;
+  
+  // Logic removed for yellow highlight, keeping logic for "Es hoy" text if needed
+  // const birthdayIsUpcoming = daysUntilBirthday !== null && daysUntilBirthday >= 0 && daysUntilBirthday <= 30;
 
   // Sync state when entering edit mode
   useEffect(() => {
@@ -116,8 +119,11 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
     }
   }, [daysInMonth, editedDay]);
 
-  // Budget calculations used for sharing text only
+  // Budget calculations
   const totalBudget = person.gifts.reduce((sum, gift) => sum + (gift.price || 0), 0);
+  const pendingGifts = person.gifts.filter(g => g.status === 'pendiente');
+  const purchasedGifts = person.gifts.filter(g => g.status === 'comprado');
+  const totalPurchasedAmount = purchasedGifts.reduce((sum, gift) => sum + (gift.price || 0), 0);
 
   const handleAddGiftSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,14 +159,11 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
   };
 
   const handleShare = async () => {
-    const pending = person.gifts.filter(g => g.status === 'pendiente');
-    const purchased = person.gifts.filter(g => g.status === 'comprado');
-
     let text = `🎂 Regalos para ${person.name} (${person.birthday})\n`;
     text += `💰 Presupuesto estimado: ${totalBudget}€\n\n`;
 
-    if (pending.length > 0) {
-        text += pending.map(g => {
+    if (pendingGifts.length > 0) {
+        text += pendingGifts.map(g => {
             let line = `⬜ ${g.name}`;
             if (g.price) line += ` (${g.price}€)`;
             if (g.link) line += ` - ${g.link}`;
@@ -168,12 +171,12 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
         }).join('\n') + '\n';
     }
 
-    if (purchased.length > 0) {
-        if (pending.length > 0) text += '\n';
-        text += purchased.map(g => `✅ ${g.name} (Comprado)`).join('\n');
+    if (purchasedGifts.length > 0) {
+        if (pendingGifts.length > 0) text += '\n';
+        text += purchasedGifts.map(g => `✅ ${g.name} (Comprado)`).join('\n');
     }
 
-    if (pending.length === 0 && purchased.length === 0) {
+    if (pendingGifts.length === 0 && purchasedGifts.length === 0) {
         text += '(La lista está vacía)';
     }
 
@@ -242,11 +245,8 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
     return `Faltan ${daysUntilBirthday} días`;
   };
 
-  const pendingGifts = person.gifts.filter(g => g.status === 'pendiente');
-  const purchasedGifts = person.gifts.filter(g => g.status === 'comprado');
-
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-shadow duration-300 relative ${birthdayIsUpcoming && !isEditingPerson ? 'shadow-lg shadow-yellow-300/50 ring-2 ring-yellow-400' : ''}`}>
+    <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-shadow duration-300 relative`}>
       
       {/* Absolute Actions (Top Right) */}
       {!isEditingPerson && (
@@ -260,6 +260,14 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                 {isExpanded ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
             </button>
             <div className="w-px h-3 bg-indigo-200 mx-0.5"></div>
+             <button 
+                onClick={() => onToggleFavorite(person.id)}
+                className={`transition-colors p-1 rounded-full hover:bg-indigo-100 ${person.isFavorite ? 'text-amber-400' : 'text-slate-400 hover:text-amber-400'}`}
+                aria-label={person.isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+                title={person.isFavorite ? "Quitar de favoritos" : "Marcar como favorito"}
+            >
+                <StarIcon className="h-4 w-4" fill={person.isFavorite ? "currentColor" : "none"} />
+            </button>
             <button 
                 onClick={handleAddToCalendar}
                 className={`transition-colors p-1 rounded-full hover:bg-indigo-100 ${person.reminderSet ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}
@@ -289,7 +297,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
       <div className="p-5 bg-indigo-50 border-b border-indigo-200 flex flex-col relative">
         <div className="flex justify-between items-start">
         {isEditingPerson ? (
-           <div className="flex-grow space-y-2 w-full pt-6"> {/* Added padding top to clear absolute buttons if present (though hidden in edit mode) */}
+           <div className="flex-grow space-y-2 w-full pt-6">
              <input
                type="text"
                value={editedName}
@@ -328,7 +336,10 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
            </div>
         ) : (
           <div className="w-full">
-            <div className="flex items-center pr-28"> {/* Right padding to avoid overlap with absolute buttons */}
+            <div className="flex items-center pr-28"> 
+                {person.isFavorite && (
+                    <StarIcon className="h-4 w-4 text-amber-400 mr-2 flex-shrink-0" fill="currentColor" />
+                )}
                 <h3 className="text-xl font-bold text-indigo-900 truncate">{person.name}</h3>
                 <button 
                     onClick={() => setIsEditingPerson(true)} 
@@ -346,10 +357,9 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                 </div>
                 {daysUntilBirthday !== null && (
                     <div className="text-right flex-shrink-0">
-                    <span className={`font-semibold ${birthdayIsUpcoming ? 'text-yellow-600' : 'text-slate-500'}`}>
+                    <span className="font-semibold text-slate-500">
                         {renderDaysLeftText()}
                     </span>
-                    {birthdayIsUpcoming && <GiftIcon className="h-4 w-4 ml-1 inline-block text-yellow-500 animate-pulse" />}
                     </div>
                 )}
             </div>
@@ -385,7 +395,14 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                                 <CheckIcon className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
                                 {purchasedGifts.length} {purchasedGifts.length === 1 ? 'comprado' : 'comprados'}
                             </span>
-                            {isPurchasedExpanded ? <ChevronUpIcon className="h-3.5 w-3.5" /> : <ChevronDownIcon className="h-3.5 w-3.5" />}
+                            <div className="flex items-center gap-3">
+                                {totalPurchasedAmount > 0 && (
+                                    <span className="text-slate-600 font-semibold">
+                                        Total: {totalPurchasedAmount} €
+                                    </span>
+                                )}
+                                {isPurchasedExpanded ? <ChevronUpIcon className="h-3.5 w-3.5" /> : <ChevronDownIcon className="h-3.5 w-3.5" />}
+                            </div>
                         </button>
                         
                         {isPurchasedExpanded && (

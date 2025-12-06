@@ -7,6 +7,7 @@ export const INITIAL_PEOPLE: Person[] = [
     name: 'Mamá',
     birthday: '15 de Mayo',
     reminderSet: false,
+    isFavorite: false,
     gifts: [
       {
         id: 'gift-1-1',
@@ -27,6 +28,7 @@ export const INITIAL_PEOPLE: Person[] = [
     name: 'Juan',
     birthday: '22 de Noviembre',
     reminderSet: false,
+    isFavorite: false,
     gifts: [
       {
         id: 'gift-2-1',
