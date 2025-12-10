@@ -1,14 +1,14 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Person, PersonColor } from '../types';
+import { Person, PersonColor, GiftPriority } from '../types';
 import GiftItem from './GiftItem';
-import { PlusIcon, CakeIcon, TrashIcon, PencilIcon, ShareIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, EuroIcon, LinkIcon, BellIcon, StarIcon } from './icons';
+import { PlusIcon, CakeIcon, TrashIcon, PencilIcon, ShareIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, EuroIcon, LinkIcon, BellIcon, StarIcon, FireIcon, SparklesIcon, CoffeeIcon } from './icons';
 
 interface PersonCardProps {
   person: Person;
   onToggleGiftStatus: (personId: string, giftId: string) => void;
-  onAddGift: (personId: string, giftName: string, giftDescription: string, price?: number, link?: string) => void;
-  onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => void;
+  onAddGift: (personId: string, giftName: string, giftDescription: string, price?: number, link?: string, priority?: GiftPriority) => void;
+  onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string, newPriority?: GiftPriority) => void;
   onDeleteGift: (personId: string, giftId: string) => void;
   onDeletePerson: (personId: string) => void;
   onEditPerson: (personId: string, newName: string, newBirthday: string, newColor: PersonColor) => void;
@@ -92,6 +92,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
   const [newGiftDescription, setNewGiftDescription] = useState('');
   const [newGiftPrice, setNewGiftPrice] = useState('');
   const [newGiftLink, setNewGiftLink] = useState('');
+  const [newGiftPriority, setNewGiftPriority] = useState<GiftPriority>('medium');
   
   const [isAddingGift, setIsAddingGift] = useState(false);
 
@@ -140,7 +141,19 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
 
   // Budget calculations
   const totalBudget = person.gifts.reduce((sum, gift) => sum + (gift.price || 0), 0);
-  const pendingGifts = person.gifts.filter(g => g.status === 'pendiente');
+  
+  // Sorting Pending Gifts by Priority
+  const pendingGifts = useMemo(() => {
+      const pending = person.gifts.filter(g => g.status === 'pendiente');
+      const priorityOrder: { [key in GiftPriority]: number } = { high: 3, medium: 2, low: 1 };
+      
+      return pending.sort((a, b) => {
+          const priorityA = a.priority || 'medium';
+          const priorityB = b.priority || 'medium';
+          return priorityOrder[priorityB] - priorityOrder[priorityA];
+      });
+  }, [person.gifts]);
+
   const purchasedGifts = person.gifts.filter(g => g.status === 'comprado');
   const totalPurchasedAmount = purchasedGifts.reduce((sum, gift) => sum + (gift.price || 0), 0);
 
@@ -148,11 +161,12 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
     e.preventDefault();
     if (newGiftName.trim()) {
       const price = newGiftPrice ? parseFloat(newGiftPrice) : undefined;
-      onAddGift(person.id, newGiftName, newGiftDescription, price, newGiftLink);
+      onAddGift(person.id, newGiftName, newGiftDescription, price, newGiftLink, newGiftPriority);
       setNewGiftName('');
       setNewGiftDescription('');
       setNewGiftPrice('');
       setNewGiftLink('');
+      setNewGiftPriority('medium');
       setIsAddingGift(false);
     }
   };
@@ -163,6 +177,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
     setNewGiftDescription('');
     setNewGiftPrice('');
     setNewGiftLink('');
+    setNewGiftPriority('medium');
   };
 
   const handleSavePerson = () => {
@@ -263,6 +278,21 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
     if (daysUntilBirthday === 1) return 'Falta 1 día';
     return `Faltan ${daysUntilBirthday} días`;
   };
+
+  const PriorityButton = ({ level, icon: Icon, label, colorClass }: { level: GiftPriority, icon: any, label: string, colorClass: string }) => (
+    <button
+        type="button"
+        onClick={() => setNewGiftPriority(level)}
+        className={`flex-1 py-1.5 px-2 rounded-md border text-xs font-medium flex items-center justify-center gap-1 transition-all
+            ${newGiftPriority === level 
+                ? `${colorClass} border-transparent text-white shadow-sm` 
+                : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+            }`}
+    >
+        <Icon className="w-3.5 h-3.5" />
+        {label}
+    </button>
+  );
 
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-shadow duration-300 relative border-t-4 ${styles.text} ${styles.border.replace('border', 'border-t')}`}>
@@ -508,6 +538,16 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                             className={`block w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:border-transparent sm:text-sm ${styles.border.replace('border', 'focus:ring')}`}
                         />
                      </div>
+                  </div>
+
+                  {/* Priority Selector */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Prioridad</label>
+                    <div className="flex gap-2">
+                        <PriorityButton level="high" icon={FireIcon} label="Alta" colorClass="bg-red-500" />
+                        <PriorityButton level="medium" icon={SparklesIcon} label="Media" colorClass="bg-amber-500" />
+                        <PriorityButton level="low" icon={CoffeeIcon} label="Baja" colorClass="bg-blue-400" />
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3 pt-2">

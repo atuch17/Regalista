@@ -15,6 +15,7 @@ export const INITIAL_PEOPLE: Person[] = [
         name: 'Set de Jardinería Premium',
         description: 'Herramientas ergonómicas de acero inoxidable.',
         status: 'pendiente',
+        priority: 'high',
       },
       {
         id: 'gift-1-2',
@@ -22,6 +23,7 @@ export const INITIAL_PEOPLE: Person[] = [
         description: 'Edición especial de bolsillo con sus obras más famosas.',
         status: 'comprado',
         price: 45,
+        priority: 'medium',
       },
     ],
   },
@@ -38,14 +40,16 @@ export const INITIAL_PEOPLE: Person[] = [
         name: 'Teclado Mecánico Compacto',
         description: 'Inalámbrico, con switches silenciosos para programar.',
         status: 'pendiente',
-        link: 'https://amazon.es'
+        link: 'https://amazon.es',
+        priority: 'high',
       },
       {
         id: 'gift-2-2',
         name: 'Suscripción a Café',
         description: 'Recibe granos de diferentes orígenes cada mes.',
         status: 'pendiente',
-        price: 25
+        price: 25,
+        priority: 'low',
       },
     ],
   },

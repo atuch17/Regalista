@@ -1,14 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Gift } from '../types';
-import { CheckIcon, PencilIcon, TrashIcon, LinkIcon, EuroIcon } from './icons';
+import { Gift, GiftPriority } from '../types';
+import { CheckIcon, PencilIcon, TrashIcon, LinkIcon, EuroIcon, FireIcon, SparklesIcon, CoffeeIcon, GoogleIcon } from './icons';
 // @ts-ignore
 import confetti from 'canvas-confetti';
 
 interface GiftItemProps {
     gift: Gift;
     onToggleStatus: (giftId: string) => void;
-    onEdit: (giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => void;
+    onEdit: (giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string, newPriority?: GiftPriority) => void;
     onDelete: (giftId: string) => void;
 }
 
@@ -21,6 +21,7 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
     const [description, setDescription] = useState(gift.description);
     const [price, setPrice] = useState(gift.price?.toString() || '');
     const [link, setLink] = useState(gift.link || '');
+    const [priority, setPriority] = useState<GiftPriority>(gift.priority || 'medium');
     
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -35,7 +36,7 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
     const handleSave = () => {
         if (name.trim()) {
             const numPrice = price ? parseFloat(price) : undefined;
-            onEdit(gift.id, name, description, numPrice, link);
+            onEdit(gift.id, name, description, numPrice, link, priority);
             setIsEditing(false);
         }
     };
@@ -45,6 +46,7 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
         setDescription(gift.description);
         setPrice(gift.price?.toString() || '');
         setLink(gift.link || '');
+        setPriority(gift.priority || 'medium');
         setIsEditing(false);
     };
 
@@ -81,6 +83,59 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
             window.open(url, '_blank', 'noopener,noreferrer');
         }
     };
+
+    const searchGoogleShopping = () => {
+        const query = encodeURIComponent(gift.name);
+        window.open(`https://www.google.com/search?tbm=shop&q=${query}`, '_blank');
+    };
+
+    const searchYoutubeReview = () => {
+        const query = encodeURIComponent(`${gift.name} review`);
+        window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+    };
+
+    const PriorityBadge = ({ p }: { p: GiftPriority }) => {
+        if (isPurchased) return null; // Don't show priority on purchased items
+        
+        switch (p) {
+            case 'high':
+                return (
+                    <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200" title="Prioridad Alta">
+                        <FireIcon className="w-3 h-3 mr-0.5" /> Alta
+                    </span>
+                );
+            case 'medium':
+                // Optional: decide if you want to show medium or treat it as default
+                 return (
+                    <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Prioridad Media">
+                        <SparklesIcon className="w-3 h-3 mr-0.5" /> Media
+                    </span>
+                );
+            case 'low':
+                 return (
+                    <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Prioridad Baja">
+                        <CoffeeIcon className="w-3 h-3 mr-0.5" /> Baja
+                    </span>
+                );
+            default:
+                return null;
+        }
+    };
+
+    const EditPriorityButton = ({ level, icon: Icon, label, colorClass }: { level: GiftPriority, icon: any, label: string, colorClass: string }) => (
+        <button
+            type="button"
+            onClick={() => setPriority(level)}
+            className={`flex-1 py-1 px-1 rounded border text-[10px] font-medium flex items-center justify-center gap-1 transition-all
+                ${priority === level 
+                    ? `${colorClass} border-transparent text-white shadow-sm` 
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                }`}
+        >
+            <Icon className="w-3 h-3" />
+            {label}
+        </button>
+      );
 
     return (
         <li className={`py-4 flex items-start space-x-3 sm:space-x-4 group transition-all duration-300 ease-in-out ${isDeleting ? 'opacity-0 -translate-x-4 max-h-0 py-0' : 'max-h-60'}`}>
@@ -133,6 +188,13 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
                                 className="w-2/3 px-2 py-1 bg-white border border-indigo-300 rounded-md text-sm"
                              />
                         </div>
+                        {/* Edit Priority */}
+                        <div className="flex gap-2">
+                            <EditPriorityButton level="high" icon={FireIcon} label="Alta" colorClass="bg-red-500" />
+                            <EditPriorityButton level="medium" icon={SparklesIcon} label="Media" colorClass="bg-amber-500" />
+                            <EditPriorityButton level="low" icon={CoffeeIcon} label="Baja" colorClass="bg-blue-400" />
+                        </div>
+
                         <div className="flex items-center gap-2 mt-1">
                             <button onClick={handleSave} className="px-2 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Guardar</button>
                             <button onClick={handleCancel} className="px-2 py-1 text-xs font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200">Cancelar</button>
@@ -140,11 +202,14 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
                     </div>
                 ) : (
                     <>
-                        <div className="flex justify-between items-start gap-2">
+                        <div className="flex flex-wrap justify-between items-start gap-x-2 gap-y-1">
                              <div className="flex flex-col">
-                                <p className={`font-semibold text-slate-800 transition-all duration-300 leading-tight ${isPurchased ? 'line-through text-slate-400' : ''}`}>
-                                    {gift.name}
-                                </p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <p className={`font-semibold text-slate-800 transition-all duration-300 leading-tight ${isPurchased ? 'line-through text-slate-400' : ''}`}>
+                                        {gift.name}
+                                    </p>
+                                    <PriorityBadge p={gift.priority || 'medium'} />
+                                </div>
                              </div>
                              {(gift.price !== undefined && gift.price > 0) && (
                                 <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${isPurchased ? 'bg-slate-100 text-slate-400' : 'bg-emerald-50 text-emerald-700'}`}>
@@ -159,15 +224,39 @@ const GiftItem: React.FC<GiftItemProps> = ({ gift, onToggleStatus, onEdit, onDel
                             </p>
                         )}
                         
-                        {gift.link && (
-                            <button 
-                                onClick={openLink}
-                                className={`mt-1.5 inline-flex items-center text-xs hover:underline ${isPurchased ? 'text-slate-400' : 'text-blue-600 hover:text-blue-800'}`}
-                            >
-                                <LinkIcon className="w-3 h-3 mr-1" />
-                                {new URL(gift.link.startsWith('http') ? gift.link : `https://${gift.link}`).hostname}
-                            </button>
-                        )}
+                        <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                            {gift.link && (
+                                <button 
+                                    onClick={openLink}
+                                    className={`inline-flex items-center text-xs hover:underline ${isPurchased ? 'text-slate-400' : 'text-blue-600 hover:text-blue-800'}`}
+                                    title="Abrir enlace"
+                                >
+                                    <LinkIcon className="w-3 h-3 mr-1" />
+                                    Tienda
+                                </button>
+                            )}
+                            
+                            {!isPurchased && (
+                                <>
+                                    <button 
+                                        onClick={searchGoogleShopping}
+                                        className="inline-flex items-center text-xs text-slate-500 hover:text-blue-600 hover:underline"
+                                        title="Comparar precios en Google Shopping"
+                                    >
+                                        <GoogleIcon className="w-3 h-3 mr-1" />
+                                        Comparar
+                                    </button>
+                                    <button 
+                                        onClick={searchYoutubeReview}
+                                        className="inline-flex items-center text-xs text-slate-500 hover:text-red-600 hover:underline"
+                                        title="Buscar reviews en YouTube"
+                                    >
+                                        <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                        Reviews
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </>
                 )}
             </div>

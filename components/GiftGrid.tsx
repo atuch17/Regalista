@@ -1,14 +1,14 @@
 
 import React from 'react';
-import { Person, PersonColor } from '../types';
+import { Person, PersonColor, GiftPriority } from '../types';
 import PersonCard from './GiftCard';
 import { StarIcon } from './icons';
 
 interface PeopleListProps {
   people: Person[];
   onToggleGiftStatus: (personId: string, giftId: string) => void;
-  onAddGift: (personId: string, giftName: string, giftDescription: string, price?: number, link?: string) => void;
-  onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => void;
+  onAddGift: (personId: string, giftName: string, giftDescription: string, price?: number, link?: string, priority?: GiftPriority) => void;
+  onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string, newPriority?: GiftPriority) => void;
   onDeleteGift: (personId: string, giftId: string) => void;
   onDeletePerson: (personId: string) => void;
   onEditPerson: (personId: string, newName: string, newBirthday: string, newColor: PersonColor) => void;

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Person, Gift, PersonColor } from './types';
+import { Person, Gift, PersonColor, GiftPriority } from './types';
 import { INITIAL_PEOPLE } from './constants';
 import Header from './components/Header';
 import PeopleList from './components/GiftGrid';
@@ -123,7 +123,7 @@ const App: React.FC = () => {
     setPersonToDelete(null);
   };
 
-  const handleAddGift = (personId: string, giftName: string, giftDescription: string, price?: number, link?: string) => {
+  const handleAddGift = (personId: string, giftName: string, giftDescription: string, price?: number, link?: string, priority: GiftPriority = 'medium') => {
     if (!giftName.trim()) return;
 
     const newGift: Gift = {
@@ -132,7 +132,8 @@ const App: React.FC = () => {
       description: giftDescription.trim(),
       status: 'pendiente',
       price: price,
-      link: link?.trim()
+      link: link?.trim(),
+      priority: priority
     };
 
     setPeople(people.map(person => {
@@ -146,14 +147,14 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleEditGift = (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => {
+  const handleEditGift = (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string, newPriority: GiftPriority = 'medium') => {
     setPeople(people.map(person => {
       if (person.id === personId) {
         return {
           ...person,
           gifts: person.gifts.map(gift =>
             gift.id === giftId
-              ? { ...gift, name: newName, description: newDescription, price: newPrice, link: newLink }
+              ? { ...gift, name: newName, description: newDescription, price: newPrice, link: newLink, priority: newPriority }
               : gift
           )
         };
