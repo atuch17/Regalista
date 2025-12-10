@@ -1,8 +1,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Person } from '../types';
+import { Person, PersonColor } from '../types';
 import GiftItem from './GiftItem';
-import { PlusIcon, CakeIcon, TrashIcon, GiftIcon, PencilIcon, ShareIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, EuroIcon, LinkIcon, BellIcon, StarIcon } from './icons';
+import { PlusIcon, CakeIcon, TrashIcon, PencilIcon, ShareIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, EuroIcon, LinkIcon, BellIcon, StarIcon } from './icons';
 
 interface PersonCardProps {
   person: Person;
@@ -11,7 +11,7 @@ interface PersonCardProps {
   onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => void;
   onDeleteGift: (personId: string, giftId: string) => void;
   onDeletePerson: (personId: string) => void;
-  onEditPerson: (personId: string, newName: string, newBirthday: string) => void;
+  onEditPerson: (personId: string, newName: string, newBirthday: string, newColor: PersonColor) => void;
   onSetReminder: (personId: string) => void;
   onToggleFavorite: (personId: string) => void;
 }
@@ -20,6 +20,24 @@ const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
+
+const COLORS: { [key in PersonColor]: string } = {
+  slate: 'bg-slate-500',
+  rose: 'bg-rose-500',
+  orange: 'bg-orange-500',
+  emerald: 'bg-emerald-500',
+  blue: 'bg-blue-500',
+  violet: 'bg-violet-500',
+};
+
+const COLOR_STYLES: { [key in PersonColor]: { bg: string, border: string, text: string, textLight: string, button: string } } = {
+  slate: { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-800', textLight: 'text-slate-600', button: 'bg-slate-600 hover:bg-slate-700' },
+  rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-900', textLight: 'text-rose-700', button: 'bg-rose-600 hover:bg-rose-700' },
+  orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-900', textLight: 'text-orange-700', button: 'bg-orange-600 hover:bg-orange-700' },
+  emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-900', textLight: 'text-emerald-700', button: 'bg-emerald-600 hover:bg-emerald-700' },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', textLight: 'text-blue-700', button: 'bg-blue-600 hover:bg-blue-700' },
+  violet: { bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-900', textLight: 'text-violet-700', button: 'bg-violet-600 hover:bg-violet-700' },
+};
 
 const getDaysUntilBirthday = (birthdayString: string): number | null => {
   const months: { [key: string]: number } = { 'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11 };
@@ -84,6 +102,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
   const initialDate = useMemo(() => parseBirthdayString(person.birthday), [person.birthday]);
   const [editedDay, setEditedDay] = useState(initialDate.day);
   const [editedMonth, setEditedMonth] = useState(initialDate.month);
+  const [editedColor, setEditedColor] = useState<PersonColor>(person.color || 'slate');
   
   const [isCopied, setIsCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -91,8 +110,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
 
   const daysUntilBirthday = useMemo(() => getDaysUntilBirthday(person.birthday), [person.birthday]);
   
-  // Logic removed for yellow highlight, keeping logic for "Es hoy" text if needed
-  // const birthdayIsUpcoming = daysUntilBirthday !== null && daysUntilBirthday >= 0 && daysUntilBirthday <= 30;
+  const styles = COLOR_STYLES[person.color || 'slate'];
 
   // Sync state when entering edit mode
   useEffect(() => {
@@ -101,6 +119,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
         const parsed = parseBirthdayString(person.birthday);
         setEditedDay(parsed.day);
         setEditedMonth(parsed.month);
+        setEditedColor(person.color || 'slate');
     }
   }, [isEditingPerson, person]);
 
@@ -149,7 +168,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
   const handleSavePerson = () => {
     if (editedName.trim()) {
         const formattedBirthday = `${editedDay} de ${editedMonth}`;
-        onEditPerson(person.id, editedName.trim(), formattedBirthday);
+        onEditPerson(person.id, editedName.trim(), formattedBirthday, editedColor);
         setIsEditingPerson(false);
     }
   };
@@ -246,23 +265,23 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-shadow duration-300 relative`}>
+    <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-shadow duration-300 relative border-t-4 ${styles.text} ${styles.border.replace('border', 'border-t')}`}>
       
       {/* Absolute Actions (Top Right) */}
       {!isEditingPerson && (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-indigo-50/80 backdrop-blur-sm rounded-full p-0.5 pl-2 border border-indigo-100 shadow-sm">
+        <div className={`absolute top-4 right-4 z-10 flex items-center gap-1 bg-white/50 backdrop-blur-sm rounded-full p-0.5 pl-2 border shadow-sm ${styles.border}`}>
             <button 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="text-slate-400 hover:text-indigo-600 transition-colors p-1 rounded-full hover:bg-indigo-100"
+                className={`transition-colors p-1 rounded-full hover:bg-white text-slate-400 hover:${styles.text}`}
                 aria-label={isExpanded ? "Colapsar tarjeta" : "Expandir tarjeta"}
                 title={isExpanded ? "Minimizar" : "Expandir"}
             >
                 {isExpanded ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
             </button>
-            <div className="w-px h-3 bg-indigo-200 mx-0.5"></div>
+            <div className="w-px h-3 bg-slate-300 mx-0.5"></div>
              <button 
                 onClick={() => onToggleFavorite(person.id)}
-                className={`transition-colors p-1 rounded-full hover:bg-indigo-100 ${person.isFavorite ? 'text-amber-400' : 'text-slate-400 hover:text-amber-400'}`}
+                className={`transition-colors p-1 rounded-full hover:bg-white ${person.isFavorite ? 'text-amber-400' : `text-slate-400 hover:${styles.text}`}`}
                 aria-label={person.isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
                 title={person.isFavorite ? "Quitar de favoritos" : "Marcar como favorito"}
             >
@@ -270,7 +289,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
             </button>
             <button 
                 onClick={handleAddToCalendar}
-                className={`transition-colors p-1 rounded-full hover:bg-indigo-100 ${person.reminderSet ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}
+                className={`transition-colors p-1 rounded-full hover:bg-white ${person.reminderSet ? styles.text : `text-slate-400 hover:${styles.text}`}`}
                 aria-label={person.reminderSet ? "Recordatorio activado" : "Añadir recordatorio al calendario"}
                 title={person.reminderSet ? "Recordatorio añadido a Google Calendar" : "Crear recordatorio en Google Calendar"}
             >
@@ -278,7 +297,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
             </button>
             <button 
                 onClick={handleShare}
-                className={`transition-colors p-1 rounded-full hover:bg-indigo-100 ${isCopied ? 'text-green-600' : 'text-slate-400 hover:text-indigo-600'}`}
+                className={`transition-colors p-1 rounded-full hover:bg-white ${isCopied ? 'text-green-600' : `text-slate-400 hover:${styles.text}`}`}
                 aria-label="Copiar lista de regalos"
                 title="Copiar lista al portapapeles"
             >
@@ -286,7 +305,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
             </button>
             <button 
             onClick={() => onDeletePerson(person.id)} 
-            className="text-slate-400 hover:text-red-600 transition-colors p-1 rounded-full hover:bg-red-50"
+            className="text-slate-400 hover:text-red-600 transition-colors p-1 rounded-full hover:bg-white"
             aria-label={`Eliminar a ${person.name}`}
             >
             <TrashIcon className="h-4 w-4" />
@@ -294,15 +313,15 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
         </div>
       )}
 
-      <div className="p-5 bg-indigo-50 border-b border-indigo-200 flex flex-col relative">
+      <div className={`p-5 flex flex-col relative ${styles.bg} ${styles.border} border-b`}>
         <div className="flex justify-between items-start">
         {isEditingPerson ? (
-           <div className="flex-grow space-y-2 w-full pt-6">
+           <div className="flex-grow space-y-3 w-full pt-6">
              <input
                type="text"
                value={editedName}
                onChange={(e) => setEditedName(e.target.value)}
-               className="block w-full px-3 py-2 bg-white border border-indigo-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+               className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                placeholder="Nombre"
              />
              <div className="flex gap-2">
@@ -310,7 +329,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                     <select
                         value={editedDay}
                         onChange={(e) => setEditedDay(parseInt(e.target.value))}
-                        className="block w-full px-3 py-2 bg-white border border-indigo-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
                             <option key={d} value={d}>{d}</option>
@@ -321,7 +340,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                     <select
                         value={editedMonth}
                         onChange={(e) => setEditedMonth(e.target.value)}
-                        className="block w-full px-3 py-2 bg-white border border-indigo-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                         {MONTHS.map(m => (
                             <option key={m} value={m}>{m}</option>
@@ -329,9 +348,26 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                     </select>
                  </div>
              </div>
+             
+             {/* Color Selection */}
+             <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Color de etiqueta</label>
+                <div className="flex gap-2">
+                    {(Object.keys(COLORS) as PersonColor[]).map((color) => (
+                        <button
+                            key={color}
+                            type="button"
+                            onClick={() => setEditedColor(color)}
+                            className={`w-6 h-6 rounded-full ${COLORS[color]} border-2 transition-all ${editedColor === color ? 'border-slate-600 scale-110' : 'border-transparent'}`}
+                            aria-label={`Seleccionar color ${color}`}
+                        />
+                    ))}
+                </div>
+             </div>
+
              <div className="flex items-center gap-2 mt-2">
-                 <button onClick={handleSavePerson} className="px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Guardar</button>
-                 <button onClick={handleCancelEditPerson} className="px-3 py-1 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200">Cancelar</button>
+                 <button onClick={handleSavePerson} className={`px-3 py-1 text-sm font-medium text-white rounded-md ${styles.button}`}>Guardar</button>
+                 <button onClick={handleCancelEditPerson} className="px-3 py-1 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50">Cancelar</button>
              </div>
            </div>
         ) : (
@@ -340,24 +376,24 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                 {person.isFavorite && (
                     <StarIcon className="h-4 w-4 text-amber-400 mr-2 flex-shrink-0" fill="currentColor" />
                 )}
-                <h3 className="text-xl font-bold text-indigo-900 truncate">{person.name}</h3>
+                <h3 className={`text-xl font-bold truncate ${styles.text}`}>{person.name}</h3>
                 <button 
                     onClick={() => setIsEditingPerson(true)} 
-                    className="ml-2 text-slate-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className={`ml-2 text-slate-400 hover:${styles.text} opacity-0 group-hover:opacity-100 transition-opacity`}
                     aria-label={`Editar a ${person.name}`}
                 >
                     <PencilIcon className="h-4 w-4" />
                 </button>
             </div>
             
-            <div className="mt-2 flex justify-between items-center text-sm text-indigo-700 w-full">
+            <div className={`mt-2 flex justify-between items-center text-sm w-full ${styles.textLight}`}>
                 <div className="flex items-center">
                     <CakeIcon className="h-4 w-4 mr-2 flex-shrink-0" />
                     <span>{person.birthday}</span>
                 </div>
                 {daysUntilBirthday !== null && (
                     <div className="text-right flex-shrink-0">
-                    <span className="font-semibold text-slate-500">
+                    <span className="font-semibold opacity-75">
                         {renderDaysLeftText()}
                     </span>
                     </div>
@@ -421,7 +457,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
             {!isAddingGift ? (
                <button
                  onClick={() => setIsAddingGift(true)}
-                 className="w-full py-2 border-2 border-dashed border-slate-300 rounded-md text-slate-500 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm group"
+                 className={`w-full py-2 border-2 border-dashed border-slate-300 rounded-md text-slate-500 transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm group hover:${styles.border} hover:${styles.text} hover:${styles.bg}`}
                >
                  <PlusIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
                  Añadir nueva idea de regalo
@@ -436,7 +472,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                     onChange={(e) => setNewGiftName(e.target.value)}
                     placeholder="Nombre del regalo (obligatorio)"
                     autoFocus
-                    className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className={`block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:border-transparent sm:text-sm ${styles.border.replace('border', 'focus:ring')}`}
                   />
                   
                   <textarea
@@ -444,7 +480,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                      onChange={(e) => setNewGiftDescription(e.target.value)}
                      placeholder="Descripción"
                      rows={2}
-                     className="block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                     className={`block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:border-transparent sm:text-sm ${styles.border.replace('border', 'focus:ring')}`}
                   />
 
                   <div className="flex gap-3">
@@ -457,7 +493,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                             value={newGiftPrice}
                             onChange={(e) => setNewGiftPrice(e.target.value)}
                             placeholder="Precio"
-                            className="block w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className={`block w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:border-transparent sm:text-sm ${styles.border.replace('border', 'focus:ring')}`}
                         />
                      </div>
                      <div className="relative flex-grow">
@@ -469,7 +505,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                             value={newGiftLink}
                             onChange={(e) => setNewGiftLink(e.target.value)}
                             placeholder="Enlace (https://...)"
-                            className="block w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className={`block w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:border-transparent sm:text-sm ${styles.border.replace('border', 'focus:ring')}`}
                         />
                      </div>
                   </div>
@@ -477,7 +513,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                   <div className="flex items-center gap-3 pt-2">
                     <button
                       type="submit"
-                      className="flex-grow inline-flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      className={`flex-grow inline-flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${styles.button}`}
                     >
                       <PlusIcon className="h-5 w-5" />
                       Añadir
@@ -485,7 +521,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onToggleGiftStatus, onA
                     <button
                       type="button"
                       onClick={handleCancelAddGift}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors"
                     >
                       Cancelar
                     </button>

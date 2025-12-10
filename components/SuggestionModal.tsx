@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { XIcon, UserPlusIcon } from './icons';
-import { Person } from '../types';
+import { Person, PersonColor } from '../types';
 
 interface AddPersonModalProps {
   isOpen: boolean;
@@ -14,11 +14,21 @@ const MONTHS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
+const COLORS: { [key in PersonColor]: string } = {
+  slate: 'bg-slate-500',
+  rose: 'bg-rose-500',
+  orange: 'bg-orange-500',
+  emerald: 'bg-emerald-500',
+  blue: 'bg-blue-500',
+  violet: 'bg-violet-500',
+};
+
 const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose, onAddPerson }) => {
   const [name, setName] = useState('');
   // Default to current date or generic
   const [selectedDay, setSelectedDay] = useState<number>(1);
   const [selectedMonth, setSelectedMonth] = useState<string>('Enero');
+  const [selectedColor, setSelectedColor] = useState<PersonColor>('slate');
   
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -40,6 +50,7 @@ const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose, onAddP
     setName('');
     setSelectedDay(1);
     setSelectedMonth('Enero');
+    setSelectedColor('slate');
     setFormError(null);
     onClose();
   };
@@ -59,6 +70,7 @@ const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose, onAddP
       id: `person-${Date.now()}`,
       name: name.trim(),
       birthday: formattedBirthday,
+      color: selectedColor,
       gifts: [],
     };
     onAddPerson(newPerson);
@@ -119,6 +131,22 @@ const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose, onAddP
                  </div>
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Etiqueta de Color</label>
+              <div className="flex gap-3">
+                {(Object.keys(COLORS) as PersonColor[]).map((color) => (
+                    <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        className={`w-8 h-8 rounded-full ${COLORS[color]} border-2 transition-all ${selectedColor === color ? 'border-slate-600 scale-110' : 'border-transparent'}`}
+                        aria-label={`Seleccionar color ${color}`}
+                    />
+                ))}
+              </div>
+            </div>
+
             {formError && <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{formError}</div>}
           </div>
           <div className="bg-slate-50 px-6 py-4 flex justify-end items-center space-x-3 rounded-b-lg">

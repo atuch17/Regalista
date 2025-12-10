@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Person } from '../types';
+import { Person, PersonColor } from '../types';
 import PersonCard from './GiftCard';
 import { StarIcon } from './icons';
 
@@ -11,7 +11,7 @@ interface PeopleListProps {
   onEditGift: (personId: string, giftId: string, newName: string, newDescription: string, newPrice?: number, newLink?: string) => void;
   onDeleteGift: (personId: string, giftId: string) => void;
   onDeletePerson: (personId: string) => void;
-  onEditPerson: (personId: string, newName: string, newBirthday: string) => void;
+  onEditPerson: (personId: string, newName: string, newBirthday: string, newColor: PersonColor) => void;
   onSetReminder: (personId: string) => void;
   onToggleFavorite: (personId: string) => void;
 }

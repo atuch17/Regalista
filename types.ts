@@ -10,11 +10,14 @@ export interface Gift {
   link?: string;
 }
 
+export type PersonColor = 'slate' | 'rose' | 'orange' | 'emerald' | 'blue' | 'violet';
+
 export interface Person {
   id: string;
   name: string;
   birthday: string;
   reminderSet?: boolean;
   isFavorite?: boolean;
+  color?: PersonColor;
   gifts: Gift[];
 }

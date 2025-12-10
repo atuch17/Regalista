@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Person, Gift } from './types';
+import { Person, Gift, PersonColor } from './types';
 import { INITIAL_PEOPLE } from './constants';
 import Header from './components/Header';
 import PeopleList from './components/GiftGrid';
@@ -162,7 +162,7 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleEditPerson = (personId: string, newName: string, newBirthday: string) => {
+  const handleEditPerson = (personId: string, newName: string, newBirthday: string, newColor: PersonColor) => {
     setPeople(people.map(person => {
       if (person.id === personId) {
         // If birthday changes, reset reminderSet to false
@@ -171,6 +171,7 @@ const App: React.FC = () => {
             ...person, 
             name: newName, 
             birthday: newBirthday,
+            color: newColor,
             reminderSet: isBirthdayChanged ? false : person.reminderSet 
         };
       }
